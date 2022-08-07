@@ -14,6 +14,7 @@ To start the command interpreter, first clone the repo to your local machine, an
 **HBnB Commands** 
 One can create Users, Places, States, Cities, and Reviews, as well as update each class with attributes such as name, first_name, last_name, email, and passwordas per below console functionality table:
 |**Command**| **Description**|
+|--- | --- | ---|
 |create	| creates a new instance of a class|
 |show | shows instance of a specified class or all class instances|
 |destroy | deletes an instance based on class name and id|
@@ -22,8 +23,9 @@ One can create Users, Places, States, Cities, and Reviews, as well as update eac
 
 **Classes and associated attributes**
 |**Class** |	**Attributes**|
+|--- | --- | ---|
 |User | email, password, first_name, last_name|
-|State |	name|
+|State | name|
 |City | state_id, name|
 |Amenity	| name|
 |Place | city_id, user_id, name, description, number_rooms, number_bathrooms, max_guest, price_by_night, latitude, longitude, amenity_ids|
