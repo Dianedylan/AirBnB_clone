@@ -4,7 +4,7 @@ import unittest
 import os
 from models.base_model import BaseModel
 import pep8
-
+from os import getenv
 
 class TestBaseModel(unittest.TestCase):
     """this will test the base model class"""

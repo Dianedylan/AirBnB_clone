@@ -1,75 +1,84 @@
 #!/usr/bin/python3
-"""
-base_model.py
-BaseModel Class
-"""
-from uuid import uuid4
+"""This is the base model class for AirBnB"""
+import uuid
+import models
 from datetime import datetime
+from sqlalchemy import Column, DateTime, String, Integer, Table, ForeignKey
+from sqlalchemy.ext.declarative import declarative_base
+
+Base = declarative_base()
 
 
 class BaseModel:
+    """This class will defines all common attributes/methods
+    for other classes
     """
-    This is the Parent class.
-    It'll define all common attributes/methods for other classes.
-    """
+
+    id = Column(String(60), nullable=False, primary_key=True)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 
     def __init__(self, *args, **kwargs):
+        """Instantiation of base model class
+        Args:
+            args: it won't be used
+            kwargs: arguments for the constructor of the BaseModel
+        Attributes:
+            id: unique id generated
+            created_at: creation date
+            updated_at: updated date
         """
-        Takes in either args, kwargs, or neither
-        - args: Will not be used.
-        - kwargs: The dictionary of attributes to create the instance with
-            |-> Adds each key, value pair except for __class__
-            |-> Converts created_at and updated_at into datetime objects
-        If neither were sent in, then a new instance is created with:
-        - self.id -> String. Assigned with uuid4()
-        - self.created_at -> Datetime. Assigned with datetime.now()
-        - self.updated_at -> Datetime. Assigned with datetime.now()
-        -> Which is then stored in storage
-        """
-        from models import storage
-        fmt = '%Y-%m-%dT%H:%M:%S.%f'
-        if kwargs is not None and len(kwargs) > 0:
-            kwargs['created_at'] = datetime.strptime(kwargs['created_at'], fmt)
-            kwargs['updated_at'] = datetime.strptime(kwargs['updated_at'], fmt)
-            (self.__dict__).update(kwargs)
-            if '__class__' in self.__dict__:
-                del self.__dict__['__class__']
+        if kwargs:
+            for key, value in kwargs.items():
+                if key == "created_at" or key == "updated_at":
+                    value = datetime.strptime(value, "%Y-%m-%dT%H:%M:%S.%f")
+                if key != "__class__":
+                    setattr(self, key, value)
+            # TODO: wtf? more error checking?
+            if "id" not in kwargs:
+                self.id = str(uuid.uuid4())
+            if "created_at" not in kwargs:
+                self.created_at = datetime.now()
+            if "updated_at" not in kwargs:
+                self.updated_at = datetime.now()
+
         else:
-            self.id = str(uuid4())
-            self.created_at = datetime.now()
-            self.updated_at = datetime.now()
-            storage.new(self)
+            self.id = str(uuid.uuid4())
+            self.created_at = self.updated_at = datetime.now()
 
     def __str__(self):
+        """returns a string
+        Return:
+            returns a string of class name, id, and dictionary
         """
-        Prints the instance as a string using:
-        c -> The class name
-        i -> The instance's id
-        d -> The instance's dictionary of attributes
+        return "[{}] ({}) {}".format(
+            type(self).__name__, self.id, self.to_dict())
+
+    def __repr__(self):
+        """return a string representaion
         """
-        c = str(type(self).__name__)
-        i = str(self.id)
-        d = str(self.__dict__)
-        return "[" + c + "] " + "(" + i + ") " + d
+        return self.__str__()
 
     def save(self):
+        """updates the public instance attribute updated_at to current
         """
-        Sets updated_at to the current datetime
-        Saves the changes done to the instance in storage
-        """
-        from models import storage
         self.updated_at = datetime.now()
-        storage.save()
+        models.storage.new(self)
+        models.storage.save()
 
     def to_dict(self):
+        """creates dictionary of the class  and returns
+        Return:
+            returns a dictionary of all the key values in __dict__
         """
-        Returns a dictionary, which contains everything within __dict__
-        It also:
-        - Adds the __class__ attribute
-        - Turns the datetime objects created_at and updated_at into strings.
-        """
-        attrs = dict(self.__dict__)
-        attrs['__class__'] = type(self).__name__
-        attrs['created_at'] = self.created_at.isoformat()
-        attrs['updated_at'] = self.updated_at.isoformat()
-        return attrs
+        my_dict = dict(self.__dict__)
+        my_dict["__class__"] = str(type(self).__name__)
+        my_dict["created_at"] = self.created_at.isoformat()
+        my_dict["updated_at"] = self.updated_at.isoformat()
+        if "_sa_instance_state" in my_dict:
+            del my_dict["_sa_instance_state"]
+        return my_dict
+
+    def delete(self):
+        """deletes current instance from the storage (models.storage)"""
+        models.storage.delete(self)
